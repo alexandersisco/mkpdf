@@ -29,9 +29,100 @@ program
 
     const markdown = fs.readFileSync(inputPath, "utf-8");
 
-    const htmlContent = marked.parse(markdown);
+    const htmlContent = await marked.parse(markdown);
 
-    console.log(htmlContent);
+    const html = buildHtml({
+      title: "example",
+      body: htmlContent,
+    });
+
+    console.log("");
+    console.log(html);
   });
 
 program.parse(process.argv);
+
+function buildHtml(opts: {
+  title: string;
+  body: string;
+  customCss?: string;
+}): string {
+  const baseCss = `
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 2rem;
+      line-height: 1.6;
+      font-size: 14px;
+    }
+    h1, h2, h3, h4 {
+      font-weight: 600;
+      margin-top: 1.5em;
+    }
+    h1 { font-size: 2rem; }
+    h2 { font-size: 1.6rem; }
+    h3 { font-size: 1.3rem; }
+    code {
+      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      background: #f4f4f4;
+      padding: 0.2em 0.4em;
+      border-radius: 3px;
+    }
+    pre code {
+      display: block;
+      padding: 1em;
+      overflow-x: auto;
+    }
+    a {
+      color: #0366d6;
+      text-decoration: none;
+    }
+    a:hover {
+      text-decoration: underline;
+    }
+    hr {
+      border: none;
+      border-top: 1px solid #ddd;
+      margin: 2em 0;
+    }
+    .toc {
+      border: 1px solid #ddd;
+      padding: 1rem;
+      margin-bottom: 2rem;
+      background: #fafafa;
+    }
+    .toc h2 {
+      margin-top: 0;
+    }
+    .toc ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    .toc li {
+      margin-bottom: 0.25rem;
+    }
+  `;
+
+  const css = baseCss + (opts.customCss ?? "");
+
+  return `
+    <!DOCTYPE html>
+    <html>
+      <head>
+        <meta charset="utf-8" />
+        <title>${escapeHtml(opts.title)}</title>
+        <style>${css}</style>
+      </head>
+      <body>
+        ${opts.body}
+      </body>
+    </html>
+  `;
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
