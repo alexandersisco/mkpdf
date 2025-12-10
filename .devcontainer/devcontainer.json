@@ -1,0 +1,28 @@
+{
+  "name": "md2pdf-devcontainer",
+
+  // Use our Dockerfile
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+
+  // Where the project will be mounted in the container
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  // Match the USER we created in the Dockerfile
+  "remoteUser": "node",
+
+  // Optional: run after container is created (inside container)
+  "postCreateCommand": "cd /workspaces/${localWorkspaceFolderBasename} && go mod tidy || true"
+
+  "mounts": [
+    "source=${localEnv:HOME}/.nvim_clipboard.txt,target=/home/node/.nvim_clipboard.txt,type=bind",
+    "source=${localEnv:HOME}/.gitconfig,target=/home/node/.gitconfig,type=bind,consistency=cached",
+    "source=${localEnv:SSH_AUTH_SOCK},target=/ssh-agent,type=bind"
+  ]
+  "remoteEnv": {
+    "SSH_AUTH_SOCK": "/ssh-agent"
+  }
+}
+
+
