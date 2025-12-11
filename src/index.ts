@@ -4,7 +4,6 @@ import fs from "fs";
 import path from "path";
 import { Command } from "commander";
 import { marked } from "marked";
-import puppeteer from "puppeteer";
 
 const program = new Command();
 
@@ -14,6 +13,7 @@ program
   .version("1.0.0")
   .argument("<input>", "input Markdown file")
   .option("-o, --output <output>", "output PDF file")
+  .option("-t, --title <title>", "title of html document")
   .action(async (input, options) => {
     const inputPath = path.resolve(process.cwd(), input);
 
@@ -22,25 +22,34 @@ program
       process.exit(1);
     }
 
-    if (options.output) {
-      console.log(options.output);
-    }
-    console.log(inputPath, " <= ", input);
-
     const markdown = fs.readFileSync(inputPath, "utf-8");
 
     const htmlContent = await marked.parse(markdown);
 
     const html = buildHtml({
-      title: "example",
+      title: options.title || path.parse(inputPath).name,
       body: htmlContent,
     });
 
-    console.log("");
-    console.log(html);
+    console.log(html)
+
+    // const outputPath = getOutputPath(input, options.output);
+    //
+    // console.log(outputPath)
+    //
+    // fs.writeFileSync(outputPath, html);
   });
 
 program.parse(process.argv);
+
+function getOutputPath(input: string, output?: string) {
+  if (output) {
+    return path.resolve(process.cwd(), output);
+  }
+
+  const { dir, name } = path.parse(input);
+  return `${dir}/${name}.html`;
+}
 
 function buildHtml(opts: {
   title: string;
