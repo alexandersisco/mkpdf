@@ -12,10 +12,12 @@
   "type": "commonjs",
   "dependencies": {
     "commander": "^14.0.2",
+    "express": "^5.2.1",
     "marked": "^17.0.1",
     "puppeteer": "^24.32.1"
   },
   "devDependencies": {
+    "@types/express": "^5.0.6",
     "@typescript-eslint/eslint-plugin": "^8.49.0",
     "@typescript-eslint/parser": "^8.49.0",
     "eslint": "^9.39.1",

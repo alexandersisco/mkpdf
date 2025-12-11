@@ -1,9 +1,8 @@
-#!/usr/bin/env node
-
 import fs from "fs";
 import path from "path";
 import { Command } from "commander";
 import { marked } from "marked";
+import puppeteer from 'puppeteer';
 
 const program = new Command();
 
@@ -31,16 +30,33 @@ program
       body: htmlContent,
     });
 
-    console.log(html)
+    const outputPath = getOutputPath(input, options.output);
 
-    // const outputPath = getOutputPath(input, options.output);
-    //
-    // console.log(outputPath)
+    console.log(outputPath)
     //
     // fs.writeFileSync(outputPath, html);
+
+    renderPdf(html, outputPath)
   });
 
 program.parse(process.argv);
+
+async function renderPdf(html: string, outputPath: string): Promise<void> {
+  console.log("Launching Puppeteer...");
+  let browser = await puppeteer.launch({
+    headless: true,
+    args: ["--no-sandbox"]
+  });
+
+  const page = await browser.newPage();
+  await page.setContent(html, { waitUntil: "networkidle0" });
+  await page.pdf({
+    path: outputPath,
+    format: "A4",
+    printBackground: true
+  });
+  await browser.close()
+}
 
 function getOutputPath(input: string, output?: string) {
   if (output) {
