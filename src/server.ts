@@ -1,4 +1,3 @@
-import fs from "fs";
 import express from "express";
 import { marked } from "marked";
 import puppeteer from "puppeteer";
@@ -7,13 +6,6 @@ const app = express();
 
 app.use(express.json({ limit: "1mb" }));
 
-// app.use(
-//   express.text({
-//     type: ["text/plain", "text/markdown", "text/x-markdown", "*/*"],
-//     limit: "1mb",
-//   })
-// );
-//
 app.post("/convert", async (req: any, res: any) => {
   try {
     const body = req.body as {
@@ -33,7 +25,7 @@ app.post("/convert", async (req: any, res: any) => {
 
     const pdfBuffer = await convertMarkdownToPdf(
       markdown,
-      title || "Alexander Sisco | Resume",
+      title || "Resume",
       css,
     );
 
@@ -76,7 +68,6 @@ async function convertMarkdownToPdf(
     await page.setContent(html, { waitUntil: "networkidle0" });
 
     const pdf = await page.pdf({
-      format: "A4",
       printBackground: true,
     });
 
