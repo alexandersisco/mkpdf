@@ -1,5 +1,5 @@
 # To build the image, run
-# docker build -t md2html .
+# docker build -t md2pdf .
 
 # To run this container, type:
 # docker run --rm -v "$PWD":/workspaces -w /workspaces md2html <input-file> -o <output-path>
@@ -16,14 +16,14 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install dependencies (including Puppeteer)
-RUN npm install
+RUN yarn
 
 # Copy the rest of the source
 COPY tsconfig.json ./
 COPY src ./src
 
 # Build the TypeScript code
-RUN npm run build
+RUN yarn run build
 
 EXPOSE 8080
 
