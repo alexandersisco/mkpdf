@@ -1,23 +1,47 @@
+import fs from "fs";
 import express from "express";
 import { marked } from "marked";
 import puppeteer from "puppeteer";
 
 const app = express();
 
-app.use(express.text({ type: "*/*" }));
+app.use(express.json({ limit: "1mb" }));
 
+// app.use(
+//   express.text({
+//     type: ["text/plain", "text/markdown", "text/x-markdown", "*/*"],
+//     limit: "1mb",
+//   })
+// );
+//
 app.post("/convert", async (req: any, res: any) => {
   try {
-    const markdown = req.body;
+    const body = req.body as {
+      markdown?: string;
+      title?: string;
+      css?: string;
+    };
+
+    let markdown = body.markdown;
+    let title = body.title;
+    let css = body.css;
+
+    if (!markdown) {
+      res.status(400).json({ error: "Markdown content is missing" });
+      return;
+    }
 
     const pdfBuffer = await convertMarkdownToPdf(
       markdown,
-      "Alexander Sisco | Resume",
+      title || "Alexander Sisco | Resume",
+      css,
     );
 
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline; filename=output.pdf");
     res.send(pdfBuffer);
+
+    res.json(body)
   } catch (err) {
     console.error(err);
     res.status(500).send("Error converting Markdown to PDF");
@@ -32,12 +56,14 @@ app.listen(PORT, () => {
 async function convertMarkdownToPdf(
   markdown: string,
   title: string,
+  css?: string,
 ): Promise<Uint8Array<ArrayBufferLike>> {
   const htmlContent = await marked.parse(markdown);
 
   const html = buildHtml({
     title,
     body: htmlContent,
+    customCss: css,
   });
 
   let browser = await puppeteer.launch({
