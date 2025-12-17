@@ -6,7 +6,7 @@ port=8080
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
 # Short options string "ab:h"
 # Long options string "alpha,bravo:,help" (colon indicates required argument)
-parsed_args=$(getopt -n $0 -o t:o:s:h --long title:,output-dir:,styles:,help -- "$@")
+parsed_args=$(getopt -n $0 -o t:o:s:h --long title:,output:,styles:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
   exit 1
@@ -22,7 +22,7 @@ do
       pdf_title="$2"
       shift 2
       ;;
-    -o | --output-dir)
+    -o | --output)
       pdf_output_dir=$(realpath "$2")
       shift 2
       ;;
