@@ -1,10 +1,7 @@
 {
-  "name": "md2pdf",
-  "version": "1.0.0",
+  "name": "mkpdf",
+  "version": "0.1.0",
   "main": "dist/index.js",
-  "bin": {
-    "md2pdf": "dist/index.js"
-  },
   "scripts": {
     "build": "tsc",
     "dev": "ts-node src/index.ts"
