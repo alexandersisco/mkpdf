@@ -52,18 +52,32 @@ done
 curl -o - -s -I http://localhost:$port > /dev/null
 
 if [ "$?" -eq 7 ]; then
-  echo "Starting md2pdf-server..."
   # Curl error: Cannot connect to localhost.
-  $("$base_dir"/app_init.sh > /dev/null)
 
-  sleep 2 # Wait for server to start before connecting...
+  # Start the app in its docker container
+  echo "Starting md2pdf-server..."
+
+  container_name='md2pdf-server'
+
+  id=$(docker ps | grep $container_name | awk '{ print $1 }')
+
+  if [ -z "$id" ]; then
+    echo "Building docker container: $container_name"
+    dockerfile_dir="$(dirname $(dirname $(readlink -f $0)))"
+
+    docker build -t "$container_name" "$dockerfile_dir"
+  fi
+
+  docker run --rm -d -p $port:$port "$container_name"
+
+  sleep 3 # Wait for server to start before connecting...
 fi
 
 makePdf() {
   local input_file="$1"
   local output_dir="$2"
   local title="$3"
-  local css="body {color:red;}"
+  local css=""
   if [ -e "$css_path" ]; then
     css=$(cat "$css_path")
   else
