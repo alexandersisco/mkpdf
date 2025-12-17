@@ -32,8 +32,6 @@ app.post("/convert", async (req: any, res: any) => {
     res.setHeader("Content-Type", "application/pdf");
     res.setHeader("Content-Disposition", "inline; filename=output.pdf");
     res.send(pdfBuffer);
-
-    res.json(body)
   } catch (err) {
     console.error(err);
     res.status(500).send("Error converting Markdown to PDF");
