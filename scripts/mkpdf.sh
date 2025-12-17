@@ -6,7 +6,7 @@ port=8080
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
 # Short options string "ab:h"
 # Long options string "alpha,bravo:,help" (colon indicates required argument)
-parsed_args=$(getopt -n $0 -o f:t:o:s:h --long file:,title:,output-dir:,styles:,help -- "$@")
+parsed_args=$(getopt -n $0 -o t:o:s:h --long title:,output-dir:,styles:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
   exit 1
@@ -18,10 +18,6 @@ eval set -- "$parsed_args"
 while :
 do
   case "$1" in
-    -f | --file)
-      md_file_path=$(realpath "$2")
-      shift 2
-      ;;
     -t | --title)
       pdf_title="$2"
       shift 2
@@ -43,10 +39,19 @@ do
   esac
 done
 
-# Access non-option arguments here
-for param in "$@"; do
-    echo "Remaining parameter: $param"
-done
+if [ "$#" -eq 0 ]; then
+  echo "No args. Show help."
+  exit 1
+fi
+
+if [ "$#" -gt 0 ]; then
+  md_file_path=$1; shift
+fi
+
+if [ "$#" -gt 0 ]; then
+  echo "unexpected extra arguments: $*"
+  exit 1
+fi
 
 # Check connection to service...
 curl -o - -s -I http://localhost:$port > /dev/null
@@ -109,6 +114,15 @@ makePdf() {
 
   echo "$output_file"
 }
+
+if [ -z $md_file_path ]; then
+  echo "No input file path found."
+  exit 1
+fi
+
+if [ -z $pdf_output_dir ]; then
+  pdf_output_dir="$(dirname $md_file_path)"
+fi
 
 # Start to build pdf
 makePdf $md_file_path $pdf_output_dir $pdf_title 
