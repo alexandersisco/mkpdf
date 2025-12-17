@@ -1,17 +1,52 @@
 #!/usr/bin/zsh
 
-md_file_path=$(realpath $1)
-pdf_output_dir=$(realpath $2)
-pdf_title=$3
-
 base_dir=$(cd $(dirname $0) && pwd) # base dir of this script
-css_path=$MD2PDF_CSS_PATH
 port=8080
 
-if [ -z "$1" ]; then
-  echo "mkpdf <markdown-file-path> [pdf-title]"
+# The 'getopt' command is used with command substitution $(...) to reformat arguments.
+# Short options string "ab:h"
+# Long options string "alpha,bravo:,help" (colon indicates required argument)
+parsed_args=$(getopt -n $0 -o f:t:o:s:h --long file:,title:,output-dir:,styles:,help -- "$@")
+valid_args=$?
+if [ "$valid_args" != "0" ]; then
   exit 1
 fi
+
+# The reformatted arguments are assigned back to the positional parameters
+eval set -- "$parsed_args"
+
+while :
+do
+  case "$1" in
+    -f | --file)
+      md_file_path=$(realpath "$2")
+      shift 2
+      ;;
+    -t | --title)
+      pdf_title="$2"
+      shift 2
+      ;;
+    -o | --output-dir)
+      pdf_output_dir=$(realpath "$2")
+      shift 2
+      ;;
+    -s | --styles)
+      css_path=$(realpath "$2")
+      shift 2
+      ;;
+    -h | --help)
+      echo "md2pdf"
+      shift
+      ;;
+    --) shift; break ;; # End of all options
+    *) echo "Internal error!" ; exit 1 ;;
+  esac
+done
+
+# Access non-option arguments here
+for param in "$@"; do
+    echo "Remaining parameter: $param"
+done
 
 # Check connection to service...
 curl -o - -s -I http://localhost:$port > /dev/null
@@ -28,7 +63,7 @@ makePdf() {
   local input_file="$1"
   local output_dir="$2"
   local title="$3"
-  local css=""
+  local css="body {color:red;}"
   if [ -e "$css_path" ]; then
     css=$(cat "$css_path")
   else
