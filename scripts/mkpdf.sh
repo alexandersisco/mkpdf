@@ -1,12 +1,14 @@
 #!/usr/bin/zsh
 
+md_file_path=$(realpath $1)
+pdf_output_dir=$(realpath $2)
+pdf_title=$3
+
 base_dir=$(cd $(dirname $0) && pwd) # base dir of this script
-md_file_path=$1
-pdf_title=$2
 css_path=$MD2PDF_CSS_PATH
 port=8080
 
-if [ -z "$md_file_path" ]; then
+if [ -z "$1" ]; then
   echo "mkpdf <markdown-file-path> [pdf-title]"
   exit 1
 fi
@@ -23,31 +25,35 @@ if [ "$?" -eq 7 ]; then
 fi
 
 makePdf() {
-  local md="$1"
-  local title="$2"
-  local css="$css_path"
-
-  md_base_dir=$(cd $(dirname $0) && pwd) # base dir of the shell that called the script. But why?
-  echo "Making pdf... $md"
-  echo "Base dir: $base_dir"
-  echo "makePdf Base dir: $md_base_dir"
+  local input_file="$1"
+  local output_dir="$2"
+  local title="$3"
+  local css=""
+  if [ -e "$css_path" ]; then
+    css=$(cat "$css_path")
+  else
+    echo "CSS file was not found."
+  fi
 
   if [ -z $title ]; then
-    title="$(basename -s .md $md)"
+    title="$(basename -s .md $input_file)"
   fi
 
   local titleSlug=$(echo "$title" | sed 's/ /_/g')
 
-  local output_dir="$md_base_dir/$(dirname $md)"
   local output_file="$output_dir/$titleSlug".pdf
+
+  echo "output_dir: $output_dir"
+
+  local md=$(cat $input_file)
 
   curl -X POST http://localhost:$port/convert \
     -H "Content-Type: application/json" \
     --data-binary "$(
   jq -n \
-    --arg markdown "$(cat "$md")" \
+    --arg markdown "$md" \
     --arg title "$title" \
-    --arg css "$(cat "$css")" \
+    --arg css "$css" \
     '{ markdown: $markdown, title: $title, css: $css }'
   )" \
   -o "$output_file"
@@ -56,5 +62,5 @@ makePdf() {
 }
 
 # Start to build pdf
-makePdf $md_file_path $pdf_title 
+makePdf $md_file_path $pdf_output_dir $pdf_title 
 
