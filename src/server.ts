@@ -23,9 +23,12 @@ app.post("/convert", async (req: any, res: any) => {
       return;
     }
 
+    const baseCss = ''
+
     const pdfBuffer = await convertMarkdownToPdf(
       markdown,
       title || "Resume",
+      baseCss,
       css,
     );
 
@@ -46,6 +49,7 @@ app.listen(PORT, () => {
 async function convertMarkdownToPdf(
   markdown: string,
   title: string,
+  baseCss: string,
   css?: string,
 ): Promise<Uint8Array<ArrayBufferLike>> {
   const htmlContent = await marked.parse(markdown);
@@ -53,6 +57,7 @@ async function convertMarkdownToPdf(
   const html = buildHtml({
     title,
     body: htmlContent,
+    baseCss: baseCss,
     customCss: css,
   });
 
@@ -78,64 +83,10 @@ async function convertMarkdownToPdf(
 function buildHtml(opts: {
   title: string;
   body: string;
+  baseCss: string;
   customCss?: string;
 }): string {
-  const baseCss = `
-    body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      margin: 2rem;
-      line-height: 1.6;
-      font-size: 14px;
-    }
-    h1, h2, h3, h4 {
-      font-weight: 600;
-      margin-top: 1.5em;
-    }
-    h1 { font-size: 2rem; }
-    h2 { font-size: 1.6rem; }
-    h3 { font-size: 1.3rem; }
-    code {
-      font-family: "SF Mono", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      background: #f4f4f4;
-      padding: 0.2em 0.4em;
-      border-radius: 3px;
-    }
-    pre code {
-      display: block;
-      padding: 1em;
-      overflow-x: auto;
-    }
-    a {
-      color: #0366d6;
-      text-decoration: none;
-    }
-    a:hover {
-      text-decoration: underline;
-    }
-    hr {
-      border: none;
-      border-top: 1px solid #ddd;
-      margin: 2em 0;
-    }
-    .toc {
-      border: 1px solid #ddd;
-      padding: 1rem;
-      margin-bottom: 2rem;
-      background: #fafafa;
-    }
-    .toc h2 {
-      margin-top: 0;
-    }
-    .toc ul {
-      list-style: none;
-      padding-left: 0;
-    }
-    .toc li {
-      margin-bottom: 0.25rem;
-    }
-  `;
-
-  const css = baseCss + (opts.customCss ?? "");
+  const css = opts.baseCss + (opts.customCss ?? "");
 
   return `
     <!DOCTYPE html>
