@@ -35,7 +35,7 @@ do
       shift 2
       ;;
     -h | --help)
-      echo "md2pdf"
+      echo "mkpdf"
       shift
       ;;
     --) shift; break ;; # End of all options
