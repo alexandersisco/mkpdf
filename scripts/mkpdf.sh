@@ -55,9 +55,9 @@ if [ "$?" -eq 7 ]; then
   # Curl error: Cannot connect to localhost.
 
   # Start the app in its docker container
-  echo "Starting md2pdf-server..."
+  echo "Starting mkpdf-server..."
 
-  container_name='md2pdf-server'
+  container_name='mkpdf-server'
 
   id=$(docker ps | grep $container_name | awk '{ print $1 }')
 
