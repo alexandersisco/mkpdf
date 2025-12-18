@@ -1,17 +1,17 @@
-# md2pdf
+# mkpdf
 
 ## Overview
 
-md2pdf is a command-line tool for converting Markdown files into PDFs using HTML rendering and CSS styling. It produces consistent, high-quality PDFs by running Puppeteer inside Docker.
+mkpdf is a command-line tool for converting Markdown files into PDFs using HTML rendering and CSS styling. It produces consistent, high-quality PDFs by running Puppeteer inside Docker.
 
 ## Quick Start
 
 ```
 git clone <repo-url>
-cd md2pdf
-ln -s "$(pwd)/scripts/mkpdf.sh" /usr/local/bin/md2pdf
+cd mkpdf
+ln -s "$(pwd)/scripts/mkpdf.sh" /usr/local/bin/mkpdf
 
-md2pdf README.md "My Document"
+mkpdf README.md
 ```
 
 > Requirements: Docker must be installed and running.
@@ -22,23 +22,22 @@ Clone the repository and create a symbolic link to the script from a directory i
 
 ```
 git clone <repo-url>
-cd md2pdf
-ln -s "$(pwd)/scripts/mkpdf.sh" /usr/local/bin/md2pdf
+cd mkpdf
+ln -s "$(pwd)/scripts/mkpdf.sh" /usr/local/bin/mkpdf
 ```
 
 ## Usage
 
 ### Basic usage
 ```
-md2pdf -f <markdown-file-path> -t <pdf-title>
+mkpdf <INPUT>
+mkpdf <INPUT> --title "My PDF"
+mkpdf <INPUT> --output docs/
 ```
 
-- <markdown-file>: Path to the Markdown file
-- <pdf-title>: Title embedded in the PDF
-
-## Custom CSS
+### Custom CSS
 ```
-md2pdf -f <markdown-file-path> -t <pdf-title> -s <css-file-path>
+mkpdf <INPUT> --css styles.css
 ```
 
 ## How It Works
@@ -47,7 +46,7 @@ md2pdf -f <markdown-file-path> -t <pdf-title> -s <css-file-path>
 - Docker encapsulates the Puppeteer runtime to ensure consistent output across environments.
 - The mkpdf.sh script communicates with Puppeteer via a lightweight HTTP server using curl.
 
-Requirements
+## Requirements
 
 - Docker
 - POSIX-compatible shell

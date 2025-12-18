@@ -5,12 +5,43 @@ port=8080
 
 OUTPUT=""
 
+# Helpers
 is_dir() { [ -d "$1" ]; }
 is_file() { [ -f "$1" ]; }
 
+# ----------------------------
+# Usage
+# ----------------------------
+usage() {
+  cat <<'EOF'
+mkpdf — render Markdown to PDF (HTML/CSS via headless Chromium)
+
+USAGE
+  mkpdf [OPTIONS] <input>
+  mkpdf <input> --css <file>
+  mkpdf <input> --output <file|dir>
+
+INPUT
+  <input>: a Markdown file path (README.md)
+
+OUTPUT
+  Default: <input-basename>.pdf in the current directory
+  Override: -o, --output <file|dir>
+
+OPTIONS (render)
+  -o, --output <path|dir|->
+  -t, --title <string>            Title (default: filename)
+
+STYLING
+  --css <file>                    Stylesheet (not repeatable)
+
+GENERAL
+  -h, --help                      Show this help
+
+EOF
+}
+
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
-# Short options string "ab:h"
-# Long options string "alpha,bravo:,help" (colon indicates required argument)
 parsed_args=$(getopt -n $0 -o t:o:S:h --long title:,output:,css:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
@@ -36,7 +67,7 @@ do
       shift 2
       ;;
     -h | --help)
-      echo "mkpdf"
+      usage
       shift
       ;;
     --) shift; break ;; # End of all options
@@ -45,7 +76,7 @@ do
 done
 
 if [ "$#" -eq 0 ]; then
-  echo "No args. Show help."
+  usage
   exit 1
 fi
 
