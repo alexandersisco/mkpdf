@@ -145,6 +145,9 @@ set_output() {
   OUTPUT="$(dirname $out)/${o_base%.*}.pdf"
 }
 
+# Set output path
+set_output
+
 # Start to build pdf
 makePdf $md_file_path $OUTPUT $pdf_title
 
