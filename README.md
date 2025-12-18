@@ -1,7 +1,5 @@
 # mkpdf
 
-## Overview
-
 mkpdf is a command-line tool for converting Markdown files into PDFs using HTML rendering and CSS styling. It produces consistent, high-quality PDFs by running Puppeteer inside Docker.
 
 ## Quick Start
