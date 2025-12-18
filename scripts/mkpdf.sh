@@ -3,6 +3,11 @@
 base_dir=$(cd $(dirname $0) && pwd) # base dir of this script
 port=8080
 
+OUTPUT=""
+
+is_dir() { [ -d "$1" ]; }
+is_file() { [ -f "$1" ]; }
+
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
 # Short options string "ab:h"
 # Long options string "alpha,bravo:,help" (colon indicates required argument)
@@ -23,7 +28,7 @@ do
       shift 2
       ;;
     -o | --output)
-      pdf_output_dir=$(realpath "$2")
+      OUTPUT=$(realpath "$2")
       shift 2
       ;;
     -s | --styles)
@@ -45,7 +50,7 @@ if [ "$#" -eq 0 ]; then
 fi
 
 if [ "$#" -gt 0 ]; then
-  md_file_path=$1; shift
+  md_file_path=$(realpath "$1"); shift
 fi
 
 if [ "$#" -gt 0 ]; then
@@ -80,7 +85,7 @@ fi
 
 makePdf() {
   local input_file="$1"
-  local output_dir="$2"
+  local output_file="$2"
   local title="$3"
   local css=""
   if [ -e "$css_path" ]; then
@@ -92,12 +97,6 @@ makePdf() {
   if [ -z $title ]; then
     title="$(basename -s .md $input_file)"
   fi
-
-  local titleSlug=$(echo "$title" | sed 's/ /_/g')
-
-  local output_file="$output_dir/$titleSlug".pdf
-
-  echo "output_dir: $output_dir"
 
   local md=$(cat $input_file)
 
@@ -120,10 +119,32 @@ if [ -z $md_file_path ]; then
   exit 1
 fi
 
-if [ -z $pdf_output_dir ]; then
-  pdf_output_dir="$(dirname $md_file_path)"
-fi
+
+set_output() {
+  local out=$OUTPUT
+
+  local in_file=$md_file_path
+  local in_dir="$(dirname $in_file)"
+  local in_base="$(basename $in_file)"
+  local in_stem="${in_base%.*}"
+
+  # is 'out' an empty string?
+  if [ -z $out ]; then
+    OUTPUT="$in_dir/${in_stem}.pdf"
+    return 0
+  fi
+
+  # is 'out' a directory?
+  if is_dir "$out"; then
+    OUTPUT="$out/${in_stem}.pdf"
+    return 0
+  fi
+
+  # ensure that '.pdf' extension exists
+  o_base="$(basename $out)"
+  OUTPUT="$(dirname $out)/${o_base%.*}.pdf"
+}
 
 # Start to build pdf
-makePdf $md_file_path $pdf_output_dir $pdf_title 
+makePdf $md_file_path $OUTPUT $pdf_title
 
