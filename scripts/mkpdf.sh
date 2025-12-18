@@ -42,7 +42,7 @@ EOF
 }
 
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
-parsed_args=$(getopt -n $0 -o t:o:S:h --long title:,output:,css:,help -- "$@")
+parsed_args=$(getopt -n $0 -o t:o:S:s:h --long title:,output:,css:,js:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
   exit 1
@@ -64,6 +64,10 @@ do
       ;;
     -S | --css)
       css_path=$(realpath "$2")
+      shift 2
+      ;;
+    -s | --js)
+      js_path=$(realpath "$2")
       shift 2
       ;;
     -h | --help)
@@ -114,7 +118,45 @@ if [ "$?" -eq 7 ]; then
   sleep 3 # Wait for server to start before connecting...
 fi
 
-makePdf() {
+md_to_pdf_with_transform() {
+  local input_file="$1"
+  local output_file="$2"
+  local title="$3"
+
+  local js=""
+  if [ -e "$js_path" ]; then
+    js=$(cat "$js_path")
+  fi
+
+  local css=""
+  if [ -e "$css_path" ]; then
+    css=$(cat "$css_path")
+  fi
+
+  if [ -z $title ]; then
+    title="$(basename -s .md $input_file)"
+  fi
+
+  local md=$(cat $input_file)
+
+  output_file="${output_file%.*}.pdf"
+
+  curl -X POST http://localhost:$port/md-to-pdf \
+    -H "Content-Type: application/json" \
+    --data-binary "$(
+  jq -n \
+    --arg js "$js" \
+    --arg markdown "$md" \
+    --arg title "$title" \
+    --arg css "$css" \
+    '{ markdown: $markdown, title: $title, css: $css, js: $js }'
+  )" \
+  -o "$output_file"
+
+  echo "$output_file"
+}
+
+md_to_pdf() {
   local input_file="$1"
   local output_file="$2"
   local title="$3"
@@ -129,7 +171,9 @@ makePdf() {
 
   local md=$(cat $input_file)
 
-  curl -X POST http://localhost:$port/convert \
+  output_file="${output_file%.*}.pdf"
+
+  curl -X POST http://localhost:$port/md-to-pdf \
     -H "Content-Type: application/json" \
     --data-binary "$(
   jq -n \
@@ -137,6 +181,56 @@ makePdf() {
     --arg title "$title" \
     --arg css "$css" \
     '{ markdown: $markdown, title: $title, css: $css }'
+  )" \
+  -o "$output_file"
+
+  echo "$output_file"
+}
+
+md_to_html() {
+  local input_file="$1"
+  local output_file="$2"
+  local title="$3"
+  local css=""
+  if [ -e "$css_path" ]; then
+    css=$(cat "$css_path")
+  fi
+
+  if [ -z $title ]; then
+    title="$(basename -s .md $input_file)"
+  fi
+
+  local md=$(cat $input_file)
+  
+  output_file="${output_file%.*}.html"
+
+  curl -X POST http://localhost:$port/md-to-html \
+    -H "Content-Type: application/json" \
+    --data-binary "$(
+  jq -n \
+    --arg markdown "$md" \
+    --arg title "$title" \
+    --arg css "$css" \
+    '{ markdown: $markdown, title: $title, css: $css }'
+  )" \
+  -o "$output_file"
+
+  echo "$output_file"
+}
+
+html_to_pdf() {
+  local input_file="$1"
+  local output_file="$2"
+  local content=$(cat $input_file)
+  
+  output_file="${output_file%.*}.pdf"
+
+  curl -X POST http://localhost:$port/html-to-pdf \
+    -H "Content-Type: application/json" \
+    --data-binary "$(
+  jq -n \
+    --arg html "$content" \
+    '{ html: $html }'
   )" \
   -o "$output_file"
 
@@ -155,28 +249,51 @@ set_output() {
   local in_file=$md_file_path
   local in_dir="$(dirname $in_file)"
   local in_base="$(basename $in_file)"
-  local in_stem="${in_base%.*}"
+  local in_stem="${in_base}"
 
   # is 'out' an empty string?
   if [ -z $out ]; then
-    OUTPUT="$in_dir/${in_stem}.pdf"
+    OUTPUT="$in_dir/${in_stem}"
     return 0
   fi
 
   # is 'out' a directory?
   if is_dir "$out"; then
-    OUTPUT="$out/${in_stem}.pdf"
+    OUTPUT="$out/${in_stem}"
     return 0
   fi
 
   # ensure that '.pdf' extension exists
   o_base="$(basename $out)"
-  OUTPUT="$(dirname $out)/${o_base%.*}.pdf"
+  OUTPUT="$(dirname $out)/$o_base"
 }
 
 # Set output path
 set_output
 
-# Start to build pdf
-makePdf $md_file_path $OUTPUT $pdf_title
+in_ext="${md_file_path##*.}"
+out_ext="${OUTPUT##*.}"
+conversion="${in_ext}->${out_ext}"
+
+if [ "$conversion" = 'md->pdf' ]; then
+  md_to_pdf_with_transform $md_file_path $OUTPUT $pdf_title
+  exit 0
+fi
+
+if [ "$conversion" = 'md->pdf' ]; then
+  md_to_pdf $md_file_path $OUTPUT $pdf_title
+  exit 0
+fi
+
+if [ "$conversion" = 'md->html' ]; then
+  md_to_pdf $md_file_path $OUTPUT $pdf_title
+  exit 0
+fi
+
+if [ "$conversion" = 'html->pdf' ]; then
+  html_to_pdf $md_file_path $OUTPUT $pdf_title
+  exit 0
+fi
+
+echo "Conversion not supported: $conversion"
 
