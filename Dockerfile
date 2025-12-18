@@ -1,9 +1,3 @@
-# To build the image, run
-# docker build -t md2pdf .
-
-# To run this container, type:
-# docker run --rm -v "$PWD":/workspaces -w /workspaces md2html <input-file> -o <output-path>
-
 # Use the official Puppeteer image which includes Node.js and Chromium
 FROM ghcr.io/puppeteer/puppeteer:latest
 
