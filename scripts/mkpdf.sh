@@ -11,7 +11,7 @@ is_file() { [ -f "$1" ]; }
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
 # Short options string "ab:h"
 # Long options string "alpha,bravo:,help" (colon indicates required argument)
-parsed_args=$(getopt -n $0 -o t:o:s:h --long title:,output:,styles:,help -- "$@")
+parsed_args=$(getopt -n $0 -o t:o:S:h --long title:,output:,css:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
   exit 1
@@ -31,7 +31,7 @@ do
       OUTPUT=$(realpath "$2")
       shift 2
       ;;
-    -s | --styles)
+    -S | --css)
       css_path=$(realpath "$2")
       shift 2
       ;;
@@ -90,8 +90,6 @@ makePdf() {
   local css=""
   if [ -e "$css_path" ]; then
     css=$(cat "$css_path")
-  else
-    echo "CSS file was not found."
   fi
 
   if [ -z $title ]; then
