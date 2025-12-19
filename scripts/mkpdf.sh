@@ -118,7 +118,7 @@ if [ "$?" -eq 7 ]; then
   sleep 3 # Wait for server to start before connecting...
 fi
 
-md_to_pdf_with_transform() {
+md_to_pdf() {
   local input_file="$1"
   local output_file="$2"
   local title="$3"
@@ -150,37 +150,6 @@ md_to_pdf_with_transform() {
     --arg title "$title" \
     --arg css "$css" \
     '{ markdown: $markdown, title: $title, css: $css, js: $js }'
-  )" \
-  -o "$output_file"
-
-  echo "$output_file"
-}
-
-md_to_pdf() {
-  local input_file="$1"
-  local output_file="$2"
-  local title="$3"
-  local css=""
-  if [ -e "$css_path" ]; then
-    css=$(cat "$css_path")
-  fi
-
-  if [ -z $title ]; then
-    title="$(basename -s .md $input_file)"
-  fi
-
-  local md=$(cat $input_file)
-
-  output_file="${output_file%.*}.pdf"
-
-  curl -X POST http://localhost:$port/md-to-pdf \
-    -H "Content-Type: application/json" \
-    --data-binary "$(
-  jq -n \
-    --arg markdown "$md" \
-    --arg title "$title" \
-    --arg css "$css" \
-    '{ markdown: $markdown, title: $title, css: $css }'
   )" \
   -o "$output_file"
 
