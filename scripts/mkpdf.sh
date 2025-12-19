@@ -223,14 +223,20 @@ html_to_pdf() {
   local output_file="$2"
   local content=$(cat $input_file)
   
+  local js=""
+  if [ -e "$js_path" ]; then
+    js=$(cat "$js_path")
+  fi
+
   output_file="${output_file%.*}.pdf"
 
   curl -X POST http://localhost:$port/html-to-pdf \
     -H "Content-Type: application/json" \
     --data-binary "$(
   jq -n \
+    --arg js "$js"
     --arg html "$content" \
-    '{ html: $html }'
+    '{ html: $html, js: $js }'
   )" \
   -o "$output_file"
 
@@ -286,7 +292,7 @@ if [ "$conversion" = 'md->pdf' ]; then
 fi
 
 if [ "$conversion" = 'md->html' ]; then
-  md_to_pdf $md_file_path $OUTPUT $pdf_title
+  md_to_html $md_file_path $OUTPUT $pdf_title
   exit 0
 fi
 

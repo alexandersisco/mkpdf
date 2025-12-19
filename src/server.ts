@@ -83,9 +83,11 @@ app.post("/html-to-pdf", async (req: any, res: any) => {
   try {
     const body = req.body as {
       html?: string;
+      js?: string;
     };
 
     let markdown = body.html;
+    let js = body.js
 
     if (!markdown) {
       res.status(400).json({ error: "Markdown content is missing" });
@@ -93,7 +95,8 @@ app.post("/html-to-pdf", async (req: any, res: any) => {
     }
 
     const pdfBuffer = await convertHtmlToPdf(
-      markdown
+      markdown,
+      js
     );
 
     res.setHeader("Content-Type", "application/pdf");
@@ -101,7 +104,7 @@ app.post("/html-to-pdf", async (req: any, res: any) => {
     res.send(pdfBuffer);
   } catch (err) {
     console.error(err);
-    res.status(500).send("Error converting Markdown to PDF");
+    res.status(500).send("Error converting HTML to PDF");
   }
 });
 
@@ -140,9 +143,7 @@ async function convertHtmlToPdf(
     const page = await browser.newPage();
     await page.setContent(html, { waitUntil: "networkidle0" });
 
-    console.log("About to check presence of script...")
     if (js) {
-      console.log(js)
       await page.evaluate(js);
     }
 
