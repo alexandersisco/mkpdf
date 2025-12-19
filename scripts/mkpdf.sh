@@ -224,23 +224,35 @@ set_output() {
   local in_file=$md_file_path
   local in_dir="$(dirname $in_file)"
   local in_base="$(basename $in_file)"
-  local in_stem="${in_base}"
+  local in_stem="${in_base%.*}"
 
   # is 'out' an empty string?
   if [ -z $out ]; then
-    OUTPUT="$in_dir/${in_stem}"
-    return 0
-  fi
+    OUTPUT="$in_dir/${in_stem}.pdf"
 
   # is 'out' a directory?
-  if is_dir "$out"; then
-    OUTPUT="$out/${in_stem}"
-    return 0
-  fi
+  elif is_dir "$out"; then
+    OUTPUT="$out/${in_stem}.pdf"
+    echo "out is a directory:"
+    echo "out: $out"
+    echo "in_stem: $in_stem"
 
-  # ensure that '.pdf' extension exists
-  o_base="$(basename $out)"
-  OUTPUT="$(dirname $out)/$o_base"
+  else
+    local o_base="$(basename $out)"
+    OUTPUT="$(dirname $out)/$o_base"
+
+    local out_ext="${OUTPUT##*.}"
+
+    # was 'out' supplied with extension?
+    if [ "$out_ext" = "$OUTPUT" ]; then
+      OUTPUT="${OUTPUT}.pdf"
+    fi
+
+    # is 'out' simply an extension? Ex: '.pdf' or '.html'?
+    if [ ".$out_ext" = "$o_base" ]; then
+      OUTPUT="$in_dir/$in_stem.$out_ext"
+    fi
+  fi
 }
 
 # Set output path
@@ -250,9 +262,18 @@ in_ext="${md_file_path##*.}"
 out_ext="${OUTPUT##*.}"
 conversion="${in_ext}->${out_ext}"
 
-if [ "$conversion" = 'md->pdf' ]; then
-  md_to_pdf_with_transform $md_file_path $OUTPUT $pdf_title
-  exit 0
+if [ "$TEST" = "TEST_OUTPUT" ]; then
+  echo ""
+  echo "------------------------------------------------"
+  echo "TEST OUTPUT:"
+  echo "------------------------------------------------"
+  echo "input  : $md_file_path"
+  echo "output : $OUTPUT"
+  echo "in ext : $in_ext"
+  echo "out ext: $out_ext"
+  echo "------------------------------------------------"
+  echo ""
+  exit 100
 fi
 
 if [ "$conversion" = 'md->pdf' ]; then
