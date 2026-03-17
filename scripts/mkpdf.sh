@@ -1,4 +1,4 @@
-#!/usr/bin/zsh
+#!/usr/bin/env zsh
 
 base_dir=$(cd $(dirname $0) && pwd) # base dir of this script
 port=8080
