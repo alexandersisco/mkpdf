@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-base_dir=$(cd $(dirname $0) && pwd) # base dir of this script
+base_dir=$(cd $(dirname "$0") && pwd) # base dir of this script
 port=8080
 
 OUTPUT=""
@@ -44,7 +44,7 @@ exit 1
 }
 
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
-parsed_args=$(getopt -n $0 -o t:o:S:s:h --long title:,output:,css:,js:,help -- "$@")
+parsed_args=$(getopt -n "$0" -o t:o:S:s:h --long title:,output:,css:,js:,help -- "$@")
 valid_args=$?
 if [ "$valid_args" != "0" ]; then
   exit 1
