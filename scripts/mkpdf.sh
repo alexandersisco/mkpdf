@@ -39,6 +39,8 @@ GENERAL
   -h, --help                      Show this help
 
 EOF
+
+exit 1
 }
 
 # The 'getopt' command is used with command substitution $(...) to reformat arguments.
@@ -81,7 +83,6 @@ done
 
 if [ "$#" -eq 0 ]; then
   usage
-  exit 1
 fi
 
 if [ "$#" -gt 0 ]; then
